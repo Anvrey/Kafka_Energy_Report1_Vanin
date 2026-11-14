@@ -1,0 +1,69 @@
+groups:
+  - name: smartgrid_lviv_alerts
+    interval: 15s
+    rules:
+      # Відхилення напруги понад 10 В від норми
+      - alert: ВідхиленняНапруги
+        expr: abs(smartgrid_voltage_v - 220) > 10
+        for: 5m
+        labels:
+          severity: critical
+          system: smartgrid
+        annotations:
+          summary: "Аномальна напруга в районі {{ $labels.district }}"
+          description: "Напруга в районі {{ $labels.district }} становить {{ $value }} В"
+
+      # Відхилення частоти понад 0.2 Гц
+      - alert: ВідхиленняЧастоти
+        expr: abs(smartgrid_frequency_hz - 50.0) > 0.2
+        for: 1m
+        labels:
+          severity: critical
+          system: smartgrid
+        annotations:
+          summary: "Відхилення частоти мережі в районі {{ $labels.district }}"
+          description: "Частота в районі {{ $labels.district }} становить {{ $value }} Гц"
+
+      # Низький коефіцієнт потужності
+      - alert: НизькийPowerFactor
+        expr: smartgrid_power_factor < 0.90
+        for: 15m
+        labels:
+          severity: warning
+          system: smartgrid
+        annotations:
+          summary: "Низький power factor у районі {{ $labels.district }}"
+          description: "Коефіцієнт потужності для {{ $labels.consumer_type }} у районі {{ $labels.district }} становить {{ $value }}"
+
+      # Комплексне погіршення якості електроенергії в районі
+      - alert: ПогіршенняЯкостіВРайоні
+        expr: (sum by (district) (rate(smartgrid_quality_violations_total[5m])) / clamp_min(sum by (district) (rate(smartgrid_readings_total[5m])), 0.001)) > 0.10
+        for: 3m
+        labels:
+          severity: critical
+          system: smartgrid
+        annotations:
+          summary: "Погіршення якості електроенергії в районі {{ $labels.district }}"
+          description: "Частка порушень якості в районі {{ $labels.district }} перевищує 10 відсотків"
+
+      # Аномально низьке споживання району
+      - alert: НизькаПотужність
+        expr: smartgrid_power_kw < 100
+        for: 5m
+        labels:
+          severity: warning
+          system: smartgrid
+        annotations:
+          summary: "Низьке споживання в районі {{ $labels.district }}"
+          description: "Потужність у районі {{ $labels.district }} впала до {{ $value }} кВт"
+
+      # Зупинка генератора телеметрії
+      - alert: ВідсутністьДаних
+        expr: up{job="energy-producer"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          system: monitoring
+        annotations:
+          summary: "Producer телеметрії не відповідає"
+          description: "Збір даних з розумних лічильників зупинено"

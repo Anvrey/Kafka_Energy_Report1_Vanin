@@ -1,0 +1,248 @@
+{
+  "uid": "smartgrid-lviv-lab5",
+  "title": "Моніторинг енергетичних систем: Smart Grid Львів",
+  "tags": ["smartgrid", "lviv", "kafka", "cassandra"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Voltage quality по районах (Heatmap)",
+      "type": "heatmap",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (le) (increase(smartgrid_voltage_hist_v_bucket[5m]))",
+          "format": "heatmap",
+          "legendFormat": "{{le}}"
+        }
+      ],
+      "options": {
+        "calculate": false,
+        "color": { "mode": "scheme", "scheme": "Oranges" },
+        "yAxis": { "unit": "volt" }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Frequency stability (Гц)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "hertz",
+          "min": 49.4,
+          "max": 50.6,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 49.8 },
+              { "color": "red", "value": 50.2 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "smartgrid_frequency_hz",
+          "legendFormat": "{{district}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Power factor distribution (Histogram)",
+      "type": "heatmap",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (le) (increase(smartgrid_power_factor_hist_bucket[5m]))",
+          "format": "heatmap",
+          "legendFormat": "{{le}}"
+        }
+      ],
+      "options": {
+        "calculate": false,
+        "color": { "mode": "scheme", "scheme": "Blues" }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Відхилення від норм по районах",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (district, violation_type) (increase(smartgrid_quality_violations_total[5m]))",
+          "legendFormat": "{{district}} {{violation_type}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Напруга по районах (Gauge)",
+      "type": "gauge",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "volt",
+          "min": 195,
+          "max": 245,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 210 },
+              { "color": "green", "value": 215 },
+              { "color": "yellow", "value": 225 },
+              { "color": "red", "value": 230 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "smartgrid_voltage_v",
+          "legendFormat": "{{district}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Частота мережі",
+      "type": "stat",
+      "gridPos": { "h": 7, "w": 4, "x": 8, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "hertz",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 49.8 },
+              { "color": "red", "value": 50.2 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg(smartgrid_frequency_hz)",
+          "legendFormat": "Середня частота"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Потужність споживання по районах (кВт)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "smartgrid_power_kw",
+          "legendFormat": "{{district}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Повідомлень за секунду",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(energy_messages_sent_total[5m]))",
+          "legendFormat": "Всього"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Метрики Kafka та Cassandra (Лаг і затримка запису)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 23 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(kafka_consumergroup_lag)",
+          "legendFormat": "Kafka max lag"
+        },
+        {
+          "refId": "B",
+          "expr": "cassandra_table_writelatency",
+          "legendFormat": "Cassandra write latency (ms)"
+        },
+        {
+          "refId": "C",
+          "expr": "cassandra_table_readlatency",
+          "legendFormat": "Cassandra read latency (ms)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Відповідність стандартам по районах (%)",
+      "type": "bargauge",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 23 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 85 },
+              { "color": "green", "value": 95 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(1 - (sum by (district) (increase(smartgrid_quality_violations_total[15m])) / clamp_min(sum by (district) (increase(smartgrid_readings_total[15m])), 1))) * 100",
+          "legendFormat": "{{district}}"
+        }
+      ]
+    }
+  ]
+}
